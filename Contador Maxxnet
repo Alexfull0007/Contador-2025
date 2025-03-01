@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contador de Tiempos y Tiempo Extra</title>
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; margin-top: 50px; }
+        #contador { font-size: 48px; font-weight: bold; margin-bottom: 10px; }
+        .boton { font-size: 18px; margin: 10px; padding: 10px 20px; cursor: pointer; }
+        #extra { font-size: 24px; margin-top: 10px; }
+    </style>
+</head>
+<body>
+    <h1>Contador de Tiempos y Tiempo Extra</h1>
+    <div id="contador">00:00</div>
+    <p id="estado">Primer Tiempo</p>
+    <button class="boton" onclick="iniciar()">Iniciar</button>
+    <button class="boton" onclick="pausar()">Pausar</button>
+    <button class="boton" onclick="reiniciar()">Reiniciar</button>
+    <button class="boton" onclick="cambiarTiempo()">Cambiar a Segundo Tiempo</button>
+    <button class="boton" onclick="agregarExtra()">+1 Minuto Extra</button>
+    <div id="extra">Tiempo Extra: 0 min</div>
+
+    <script>
+        let minutos = 0, segundos = 0, tiempoExtra = 0;
+        let primerTiempo = true;
+        let contador = document.getElementById("contador");
+        let estado = document.getElementById("estado");
+        let extraDisplay = document.getElementById("extra");
+        let intervalo;
+
+        function actualizarContador() {
+            let minStr = minutos.toString().padStart(2, '0');
+            let segStr = segundos.toString().padStart(2, '0');
+            contador.textContent = `${minStr}:${segStr}`;
+
+            if ((minutos === 45 && segundos === 0 && primerTiempo) ||
+                (minutos === 90 + tiempoExtra && segundos === 0 && !primerTiempo)) {
+                clearInterval(intervalo);
+                alert("¡Tiempo terminado!");
+                return;
+            }
+
+            segundos++;
+            if (segundos === 60) {
+                segundos = 0;
+                minutos++;
+            }
+        }
+
+        function iniciar() {
+            if (!intervalo) {
+                intervalo = setInterval(actualizarContador, 1000);
+            }
+        }
+
+        function pausar() {
+            clearInterval(intervalo);
+            intervalo = null;
+        }
+
+        function reiniciar() {
+            pausar();
+            minutos = primerTiempo ? 0 : 45;
+            segundos = 0;
+            tiempoExtra = 0;
+            extraDisplay.textContent = "Tiempo Extra: 0 min";
+            actualizarContador();
+        }
+
+        function cambiarTiempo() {
+            if (primerTiempo) {
+                minutos = 45;
+                estado.textContent = "Segundo Tiempo";
+            } else {
+                minutos = 0;
+                estado.textContent = "Primer Tiempo";
+            }
+            primerTiempo = !primerTiempo;
+            actualizarContador();
+        }
+
+        function agregarExtra() {
+            if (!primerTiempo) { // Solo permite agregar tiempo extra en el segundo tiempo
+                tiempoExtra++;
+                extraDisplay.textContent = `Tiempo Extra: ${tiempoExtra} min`;
+            } else {
+                alert("El tiempo extra solo se puede agregar en el Segundo Tiempo.");
+            }
+        }
+    </script>
+</body>
+</html>
