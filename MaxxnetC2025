@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Marcador con Contador y Tiempo Extra</title>
+    <link href="https://fonts.googleapis.com/css2?family=Teko:wght@500&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Teko', sans-serif; text-align: center; margin-top: 50px; }
+        #marcador-container { display: flex; justify-content: center; align-items: center; font-size: 60px; font-weight: bold; margin-bottom: 20px; }
+        .score { width: 80px; transition: transform 0.3s ease-in-out; text-align: center; }
+        #contador-container { display: flex; justify-content: center; align-items: center; font-size: 48px; font-weight: bold; gap: 10px; }
+        #contador { text-align: right; width: 100px; }
+        #extra-container { font-size: 48px; font-weight: bold; color: red; width: 60px; text-align: left; }
+        .boton { font-size: 18px; margin: 5px; padding: 10px 20px; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <h1>Marcador y Contador</h1>
+    
+    <div id="marcador-container">
+        <button class="boton" onclick="cambiarScore('local', 1)">+</button>
+        <div id="score-local" class="score">0</div>
+        <button class="boton" onclick="cambiarScore('local', -1)">-</button>
+        <span>-</span>
+        <button class="boton" onclick="cambiarScore('visitante', -1)">-</button>
+        <div id="score-visitante" class="score">0</div>
+        <button class="boton" onclick="cambiarScore('visitante', 1)">+</button>
+    </div>
+
+    <button class="boton" onclick="reiniciarMarcador()">Reiniciar Marcador</button>
+
+    <div id="contador-container">
+        <div id="contador">00:00</div>
+        <div id="extra-container"></div>
+    </div>
+    
+    <p id="estado">Primer Tiempo</p>
+    <button class="boton" onclick="iniciar()">Iniciar</button>
+    <button class="boton" onclick="pausar()">Pausar</button>
+    <button class="boton" onclick="reiniciar()">Reiniciar</button>
+    <button class="boton" onclick="cambiarTiempo()">Cambiar Tiempo</button>
+    <button class="boton" onclick="agregarExtra()">+1 Minuto Extra</button>
+    <button class="boton" onclick="reducirExtra()">-1 Minuto Extra</button>
+    <button class="boton" onclick="reiniciarExtra()">Reiniciar Extra</button>
+
+    <script>
+        let minutos = 0, segundos = 0, tiempoExtra = 0;
+        let primerTiempo = true, enTiempoExtra = false;
+        let contador = document.getElementById("contador");
+        let extraDisplay = document.getElementById("extra-container");
+        let estado = document.getElementById("estado");
+        let scoreLocal = document.getElementById("score-local");
+        let scoreVisitante = document.getElementById("score-visitante");
+        let intervalo;
+
+        function actualizarContador() {
+            let minStr = minutos.toString().padStart(2, '0');
+            let segStr = segundos.toString().padStart(2, '0');
+            contador.textContent = `${minStr}:${segStr}`;
+            extraDisplay.textContent = tiempoExtra > 0 ? `+${tiempoExtra}` : "";
+
+            if ((minutos === 45 && segundos === 0 && primerTiempo && !enTiempoExtra) ||
+                (minutos === 90 && segundos === 0 && !primerTiempo && !enTiempoExtra)) {
+                clearInterval(intervalo);
+                alert("¡Tiempo reglamentario terminado!");
+                enTiempoExtra = true;
+                return;
+            }
+
+            if ((primerTiempo && minutos === 45 + tiempoExtra) || 
+                (!primerTiempo && minutos === 90 + tiempoExtra)) {
+                clearInterval(intervalo);
+                alert("¡Tiempo extra terminado!");
+                return;
+            }
+
+            segundos++;
+            if (segundos === 60) {
+                segundos = 0;
+                minutos++;
+            }
+        }
+
+        function iniciar() {
+            if (!intervalo) {
+                intervalo = setInterval(actualizarContador, 1000);
+            }
+        }
+
+        function pausar() {
+            clearInterval(intervalo);
+            intervalo = null;
+        }
+
+        function reiniciar() {
+            pausar();
+            minutos = primerTiempo ? 0 : 45;
+            segundos = 0;
+            enTiempoExtra = false;
+            reiniciarExtra();
+            actualizarContador();
+        }
+
+        function cambiarTiempo() {
+            if (primerTiempo) {
+                minutos = 45;
+                estado.textContent = "Segundo Tiempo";
+            } else {
+                minutos = 0;
+                estado.textContent = "Primer Tiempo";
+            }
+            primerTiempo = !primerTiempo;
+            enTiempoExtra = false;
+            actualizarContador();
+        }
+
+        function agregarExtra() {
+            if (minutos >= 45) {
+                tiempoExtra++;
+                extraDisplay.textContent = `+${tiempoExtra}`;
+            } else {
+                alert("Solo se puede agregar tiempo extra después de los 45 minutos.");
+            }
+        }
+
+        function reducirExtra() {
+            if (tiempoExtra > 0) {
+                tiempoExtra--;
+                extraDisplay.textContent = tiempoExtra > 0 ? `+${tiempoExtra}` : "";
+            }
+        }
+
+        function reiniciarExtra() {
+            tiempoExtra = 0;
+            extraDisplay.textContent = "";
+        }
+
+        function cambiarScore(equipo, cambio) {
+            let elemento = equipo === 'local' ? scoreLocal : scoreVisitante;
+            let nuevoValor = parseInt(elemento.textContent) + cambio;
+            nuevoValor = nuevoValor < 0 ? 0 : nuevoValor;
+            elemento.style.transform = "translateX(-20px)"; // Efecto de deslizamiento
+            setTimeout(() => {
+                elemento.textContent = nuevoValor;
+                elemento.style.transform = "translateX(0)";
+            }, 200);
+        }
+
+        function reiniciarMarcador() {
+            scoreLocal.textContent = "0";
+            scoreVisitante.textContent = "0";
+        }
+    </script>
+</body>
+</html>
